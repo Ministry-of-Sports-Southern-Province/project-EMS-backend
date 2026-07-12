@@ -14,7 +14,6 @@ import salaryRouter from "./routers/salary.Route.js";
 import documentTypeRouter from "./routers/document-type.Route.js";
 import documentCategoryRouter from "./routers/document-category.Route.js";
 import reportsRouter from "./routers/reports.Route.js";
-import autoInitialize from "./db/auto-init.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -90,14 +89,6 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ success: false, message: err.message || "Internal server error" });
 });
 
-// Auto-initialize database if needed
-autoInitialize()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error("Failed to initialize database:", err.message);
-    process.exit(1);
-  });
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
