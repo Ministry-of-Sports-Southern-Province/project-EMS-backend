@@ -8,8 +8,8 @@ const __dirname = path.dirname(__filename);
 const DB_CONFIG = {
   host: process.env.DB_HOST || "localhost",
   port: process.env.DB_PORT || 3306,
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
+  user: process.env.DB_USER || "sportshro",
+  password: process.env.DB_PASSWORD || "86Dnl&9g9",
   database: process.env.DB_NAME || "sports_hrms",
 };
 
