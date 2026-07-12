@@ -855,25 +855,19 @@ async function ensureSystemSettingsTable(connection) {
 export const getSystemSettings = async (req, res) => {
   try {
     await ensureSystemSettingsTable(pool);
+  } catch {
+    // Table creation failed (e.g. insufficient DB privileges) — return defaults
+    return res.json({ success: true, data: DEFAULT_SYSTEM_SETTINGS });
+  }
+
+  try {
     const [settings] = await pool.query("SELECT * FROM system_settings");
-
-    // Convert to key-value object
     const settingsObj = {};
-    settings.forEach((setting) => {
-      settingsObj[setting.setting_key] = setting.setting_value;
-    });
-
-    res.json({
-      success: true,
-      data: settingsObj,
-    });
+    settings.forEach((s) => { settingsObj[s.setting_key] = s.setting_value; });
+    res.json({ success: true, data: settingsObj });
   } catch (error) {
     console.error("Error fetching system settings:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch system settings",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "Failed to fetch system settings", error: error.message });
   }
 };
 
