@@ -1,6 +1,5 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import "dotenv/config";
 import con from "../config/db.config.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "jwt_secret_key";
