@@ -82,6 +82,15 @@ app.get("/api/health", (req, res) => {
 
 app.use("/uploads", express.static("uploads"));
 
+// Ensure CORS headers are present even on error responses
+app.use((err, req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin) res.setHeader("Access-Control-Allow-Origin", origin);
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  console.error(err);
+  res.status(err.status || 500).json({ success: false, message: err.message || "Internal server error" });
+});
+
 // Auto-initialize database if needed
 autoInitialize()
   .then(() => {
