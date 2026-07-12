@@ -19,17 +19,44 @@ import autoInitialize from "./db/auto-init.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const defaultCorsOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5175",
+  "https://hrms.sportsdpsp.lk",
+  "https://api.sportsdpsp.lk",
+];
+
 const corsOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(",")
-  : ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"];
+      .map((origin) => origin.trim())
+      .filter(Boolean)
+  : defaultCorsOrigins;
 
-app.use(
-  cors({
-    origin: corsOrigins,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-  }),
-);
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    const isAllowedOrigin =
+      corsOrigins.includes(origin) ||
+      /^https?:\/\/([a-z0-9-]+\.)*sportsdpsp\.lk$/i.test(origin) ||
+      /^http:\/\/localhost:\d+$/i.test(origin) ||
+      /^http:\/\/127\.0\.0\.1:\d+$/i.test(origin);
+
+    if (isAllowedOrigin) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 
 // Increase payload size limit for image uploads
 app.use(express.json({ limit: "10mb" }));
@@ -49,7 +76,7 @@ app.use("/salary", salaryRouter);
 app.use("/document-types", documentTypeRouter);
 app.use("/document-categories", documentCategoryRouter);
 app.use("/reports", reportsRouter);
-app.get('/api/health', (req, res) => {
+app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
