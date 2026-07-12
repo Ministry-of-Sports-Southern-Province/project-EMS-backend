@@ -820,9 +820,41 @@ export const deleteJobRole = async (req, res) => {
 
 // ==================== System Settings ====================
 
+const DEFAULT_SYSTEM_SETTINGS = {
+  system_name: "Employee Management System",
+  system_logo_url: null,
+  system_logo_public_id: null,
+  primary_color: "#0ea5e9",
+  background_color: "#ffffff",
+};
+
+async function ensureSystemSettingsTable(connection) {
+  await connection.query(`
+    CREATE TABLE IF NOT EXISTS system_settings (
+      id INT PRIMARY KEY AUTO_INCREMENT,
+      setting_key VARCHAR(100) UNIQUE NOT NULL,
+      setting_value TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_setting_key (setting_key)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  `);
+
+  const defaults = Object.entries(DEFAULT_SYSTEM_SETTINGS).map(
+    ([setting_key, setting_value]) => [setting_key, setting_value],
+  );
+
+  await connection.query(
+    `INSERT IGNORE INTO system_settings (setting_key, setting_value)
+     VALUES ?`,
+    [defaults],
+  );
+}
+
 // Get all system settings
 export const getSystemSettings = async (req, res) => {
   try {
+    await ensureSystemSettingsTable(pool);
     const [settings] = await pool.query("SELECT * FROM system_settings");
 
     // Convert to key-value object
@@ -859,6 +891,7 @@ export const updateSystemSettings = async (req, res) => {
   const connection = await pool.getConnection();
 
   try {
+    await ensureSystemSettingsTable(connection);
     await connection.beginTransaction();
 
     for (const [key, value] of Object.entries(settings)) {
